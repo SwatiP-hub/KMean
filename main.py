@@ -1,34 +1,53 @@
 from model import KMeans
 from utils import get_image, show_image, save_image, error
-
+import matplotlib.pyplot as plt
 
 def main():
     # get image
     image = get_image('image.jpg')
+    #print("Loaded image shape:", image.shape)
     img_shape = image.shape
 
     # reshape image
-    image = image.reshape(image.shape[0] * image.shape[1], image.shape[2])
-
+    image_flattened = image.reshape(image.shape[0] * image.shape[1], image.shape[2])
+    #print("Flattened image shape:", image_flattened.shape) 
     # create model
-    num_clusters = 50 # CHANGE THIS
-    kmeans = KMeans(num_clusters)
+    k_values = [2, 5, 10, 20, 50]
+    mse_values = []
 
-    # fit model
-    kmeans.fit(image)
+    # Iterate over different values of k
+    for k in k_values:
+        print(f"Running KMeans with k = {k}")
+        kmeans = KMeans(k)
+        kmeans.fit(image_flattened)
 
-    # replace each pixel with its closest cluster center
-    image = kmeans.replace_with_cluster_centers(image)
+        # Replace each pixel with its closest cluster center
+        clustered_image = kmeans.replace_with_cluster_centers(image_flattened)
 
-    # reshape image
-    image_clustered = image.reshape(img_shape)
+        # Reshape the clustered image back to the original shape
+        clustered_image_reshaped = clustered_image.reshape(img_shape)
+       
+        # Calculate the MSE
+        mse = error(image, clustered_image_reshaped)
+        mse_values.append(mse)
+        print(f"MSE for k = {k}: {mse}")
 
-    # Print the error
-    print('MSE:', error(image, image_clustered))
+        save_image(clustered_image_reshaped, f'image_clustered_{k}.jpg')
+    
+    plt.figure(figsize=(8, 6))
+    plt.plot(k_values, mse_values, marker='o', linestyle='-', color='b')
+    plt.title("MSE vs Number of Clusters (k)")
+    plt.xlabel("Number of Clusters (k)")
+    plt.ylabel("Mean Squared Error (MSE)")
+    plt.grid(True)
+    plt.show()
+    plt.savefig('mse_vs_k_plot.png')  # Save the plot as an image
+    print("Plot saved as mse_vs_k_plot.png")
+  
 
     # show/save image
-    # show_image(image)
-    save_image(image_clustered, f'image_clustered_{num_clusters}.jpg')
+    #show_image(image)
+    
 
 
 

@@ -16,4 +16,6 @@ def save_image(image, image_path):
 
 def error(original_image: np.ndarray, clustered_image: np.ndarray) -> float:
     # Returns the Mean Squared Error between the original image and the clustered image
-    raise NotImplementedError
+    mse = np.mean((original_image - clustered_image) ** 2)
+    return mse
+    #raise NotImplementedError
